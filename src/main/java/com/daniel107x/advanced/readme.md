@@ -168,3 +168,52 @@ Casos de uso:
     -Video/Image processing
     -High speed low latency trading systems
     -User interface applications
+
+
+##ReentrantReadWriteLock
+Recordemos que los problemas de condiciones de carrera son debidos a los siguientes factores:
+- Multiples hilos compartiendo un recurso
+- Al menos un hilo modificando el recurso  
+
+Nuestra solucion hasta ahora ha sido ser mutuamente excluyentes sin importar la operacion (Lectura/Escritura). Pero que pasa cuando se tiene 
+un servicio como una memoria cache, donde las operaciones de lectura son mas frecuentes que las de escritura?
+
+Si bien, necesitamos un lock que proteja la memoria entre lectura/escritura, las operaciones simultaneas de lectura no deberian
+de ser bloqueantes entre ellas, ya que multiples clientes pueden leer de la cache al mismo tiempo.
+
+**Synchronized** y el **ReentrantLock** no permiten que multiples lectores accedan a un recurso de manera concurrente, sin
+embargo, si mantenemos las regiones bloqueantes de un tamano minimo, esto no sera un problema, sin embargo, 
+si las operaciones de lectura son predominantes o toman mucho tiempo, la exclusion mutua puede impactar en el rendimiento.
+
+```java
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+
+public class Example {
+    ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+    
+    public void someMethod(){
+        Lock readLock = rwLock.readLock();
+        Lock writeLock = rwLock.writeLock();
+        writeLock.lock();
+        try{
+            modifySharedResources();
+        }finally{
+            writeLock.unlock();
+        }
+        readLock.lock();
+        try{
+            readFromSharedResource();
+        }finally{
+            readLock.unlock();
+        }
+    }
+}
+```
+
+Esto nos proporciona las siguientes ventajas:
+1. Multiples hilos pueden adquirir el read lock a la vez
+2. Un solo hilo puede mantener un write lock, si algun otro hilo trata de escribir, este tendra que esperar
+3. Si un hilo tiene el write lock, ningun hilo puede adquirir el read lock y viceversa
+4. Mientras al menos un hilo tenga el read lock, ningun hilo podra adquirir el write lock

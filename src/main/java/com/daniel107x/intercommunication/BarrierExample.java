@@ -1,5 +1,7 @@
 package com.daniel107x.intercommunication;
 
+import sun.misc.Unsafe;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;

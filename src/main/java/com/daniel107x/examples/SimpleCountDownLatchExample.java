@@ -1,5 +1,7 @@
 package com.daniel107x.examples;
 
+import sun.misc.Unsafe;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
@@ -20,6 +22,7 @@ public class SimpleCountDownLatchExample {
     private static final int WORKER_THREADS = 5;
 
     public static void main(String[] args) throws InterruptedException {
+        Unsafe clazz = Unsafe.getUnsafe();
         SimpleCountDownLatchObject latch = new SimpleCountDownLatchObject(WORKER_THREADS);
         List<Thread> workers = new ArrayList<>();
         for(int i = 0 ; i < WORKER_THREADS ; i++){
